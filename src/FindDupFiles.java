@@ -6,6 +6,7 @@ import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class FindDupFiles
 	
 	static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 	static long RamSize= Math.round((double)(((mxbean.getTotalPhysicalMemorySize())/1024)/1024)/1024);
-	static double Part= RamSize/4;
+	static double Part= RamSize/4.5;
 	static long Partsize= (long) (Part*1024*1024*1024);
 	
 	private static MessageDigest messageDigest;
@@ -39,11 +40,12 @@ public class FindDupFiles
 
 	public static void main(String[] args) throws Exception 
 	{
-		//FindDupDao Dao = new FindDupDao();
+		FindDupDao Dao = new FindDupDao();
 		Map<Long, HashMap<String,List<String>>> lists = new HashMap<Long, HashMap<String,List<String>>>();
 	        
+
 			System.out.println("C started ...");
-			//parseAllFiles(lists,"C:\\");
+			parseAllFiles(lists,"C:\\");
 	
 			System.out.println("D started ...");
 			parseAllFiles(lists,"D:\\");
@@ -57,7 +59,12 @@ public class FindDupFiles
 			    String value = finalMap.get(name).toString();
 			    System.out.println(value);
 			}
-			
+			 System.out.println("SQL Started ..");
+		      try {
+					Dao.insert(finalMap);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			
 			System.out.println("Executed Successfully..");
 			System.out.println();
@@ -74,6 +81,7 @@ public class FindDupFiles
 		       for (String value : emptyFiles)
 		            System.out.println(value + ", ");
 		   }
+		   System.out.println(finalMap.size() + ", ");
 	   }
 
 
@@ -124,17 +132,20 @@ public class FindDupFiles
 	        				if(sts) 
 	        				{
 	        					paths = lists.get(size).get(ext);
-	        					long pathsize = paths.size();
+	        					//long pathsize = paths.size();
+	        					
+        						RandomAccessFile raf2 = new RandomAccessFile(dirChild.getAbsoluteFile(), "r");
+        						byte[] buffer2 = new byte[100];
+        						byte[] buffer1 = new byte[100];
+        						raf2.read(buffer2,0,100);
 	        					for(String locations :paths)
 	        					{ 
 	        						RandomAccessFile raf1 = new RandomAccessFile(locations, "r");
-	        						RandomAccessFile raf2 = new RandomAccessFile(dirChild.getAbsoluteFile(), "r");
 	        						File locationFile = new File(locations);
 	        						
-	        				        byte[] buffer1 = new byte[100];
-	        				        byte[] buffer2 = new byte[100];
+	        				        
+	        				        
 	        				        raf1.read(buffer1,0,100);
-	        				        raf2.read(buffer2,0,100);
 	        				        if(!Arrays.equals(buffer1,buffer2))
 	        				        	continue;
 	        				        raf1.read(buffer1,0,100);
@@ -192,6 +203,8 @@ public class FindDupFiles
 		        				        	}
 	        				        	}
 	        				        }
+	        				        if(!DupSts)
+	        				        	break;
 	        				       
 	        					}
 	        					if(DupSts)
@@ -236,7 +249,7 @@ public class FindDupFiles
     {
         RandomAccessFile file = new RandomAccessFile(infile, "r");
 
-        int buffSize = 104857600 ;
+        int buffSize = 52428800 ;
         byte[] buffer = new byte[buffSize];
         long read = 0;
         long offset = file.length();

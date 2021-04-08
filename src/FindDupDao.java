@@ -1,6 +1,7 @@
 import java.sql.Connection;
-import java.util.List;
+
 import java.util.Map;
+import java.util.Set;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -32,7 +33,7 @@ public class FindDupDao {
 		return con;
 	}
 	
-	public void insert(Map<String, List<String>> lists) throws SQLException
+	public void insert(Map<String, Set<String>> finalMap) throws SQLException
 	{
 		
 		loadDriver(dbDriver);
@@ -44,7 +45,7 @@ public class FindDupDao {
 		if(con != null) {			
 		
 		ps = con.prepareStatement(sql);
-		for (List<String> list : lists.values()) {
+		for (Set<String> list : finalMap.values()) {
             if (list.size() > 1) {
             	
             	String location =list.toString();
