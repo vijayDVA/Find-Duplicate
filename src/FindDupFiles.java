@@ -37,13 +37,14 @@ public class FindDupFiles
 		Map<Long, HashMap<String,List<String>>> lists = new HashMap<Long, HashMap<String,List<String>>>();
 	      
 			System.out.println("C started ...");
-			//parseAllFiles(lists,"C:\\");
+			parseAllFiles(lists,"E:\\");
 	
 			System.out.println("D started ...");
-			parseAllFiles(lists,"D:\\");
+			//parseAllFiles(lists,"D:\\");
 			
 			System.out.println("E started ...");
-			parseAllFiles(lists,"E:\\");
+			//parseAllFiles(lists,"E:\\");
+
 			
 			for (String name: finalMap.keySet()) {
 			    String value = finalMap.get(name).toString();
@@ -52,6 +53,10 @@ public class FindDupFiles
 			System.out.println("Executed Successfully..");
 		      System.out.println("These files are used by others ..");
 		       for (String value : exceptns)
+		            System.out.println(value + ", ");
+		       
+		       System.out.println("Empty Files: ");
+		       for (String value : emptyFiles)
 		            System.out.println(value + ", ");
 	   }
 
@@ -81,6 +86,7 @@ public class FindDupFiles
 	        				HashMap<String,List<String>> extMap = lists.get(size);
 	        				List<String> paths;
 	        				Boolean sts = true;
+	        				Boolean DupSts = true;
 	        				if(extMap==null)
 	        				{	        					
 	        					extMap = new HashMap<String,List<String>>();
@@ -102,6 +108,7 @@ public class FindDupFiles
 	        				if(sts) 
 	        				{
 	        					paths = lists.get(size).get(ext);
+	        					long pathsize = paths.size();
 	        					for(String locations :paths)
 	        					{ 
 	        						RandomAccessFile raf1 = new RandomAccessFile(locations, "r");
@@ -114,6 +121,11 @@ public class FindDupFiles
 	        				        raf2.read(buffer2,0,100);
 	        				        if(!Arrays.equals(buffer1,buffer2))
 	        				        	continue;
+	        				        raf1.read(buffer1,0,100);
+	        				        raf2.read(buffer2,0,100);
+	        				        if(!Arrays.equals(buffer1,buffer2))
+	        				        	continue;
+	        				        
 	        				        raf1.read(buffer1,0,100);
 	        				        raf2.read(buffer2,0,100);
 	        				        if(!Arrays.equals(buffer1,buffer2))
@@ -131,16 +143,28 @@ public class FindDupFiles
 	        				        		{
 	        				        			dup = new HashSet<String>();
 	        				        		}
-	        				        		dup.add(locations);
-	        				        		dup.add(dirChild.getAbsolutePath());
+	        				        		if(pathsize>1)
+	        				        		{
+	        				        			dup.add(dirChild.getAbsolutePath());
+	        				        		}
+	        				        		else
+	        				        		{
+	        				        			dup.add(locations);
+		        				        		dup.add(dirChild.getAbsolutePath());
+	        				        		}
+	        				        		
 	        				        		finalMap.put(uniqueFile1, dup);
+	        				        		DupSts = false;
 	        				        	}
 	        				        }
 	        				       
 	        					}
+	        					if(DupSts)
+	        					{
 	        					paths.add(dirChild.getAbsolutePath());
 		        				extMap.put(ext, paths);
 		        				lists.put(size, extMap);
+		        				}
 	        				}
 	
 	        			}
