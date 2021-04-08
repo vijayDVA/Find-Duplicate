@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,12 +22,17 @@ public class FindDupFiles
 	public static Set<String> exceptns = new HashSet<String>();
 	public static Map<String,Set<String>> finalMap = new HashMap<String,Set<String>>();
 	
+	static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+	static long RamSize= Math.round((double)(((mxbean.getTotalPhysicalMemorySize())/1024)/1024)/1024);
+	static double Part= RamSize/4;
+	static long Partsize= (long) (Part*1024*1024*1024);
+	
 	private static MessageDigest messageDigest;
     static {
         try {
             messageDigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("cannot initialize SHA-512 hash function", e);
+            throw new RuntimeException("cannot initialize MD5 hash function", e);
         }
     }
     
@@ -35,29 +41,39 @@ public class FindDupFiles
 	{
 		//FindDupDao Dao = new FindDupDao();
 		Map<Long, HashMap<String,List<String>>> lists = new HashMap<Long, HashMap<String,List<String>>>();
-	      
+	        
 			System.out.println("C started ...");
-			parseAllFiles(lists,"E:\\");
+			//parseAllFiles(lists,"C:\\");
 	
 			System.out.println("D started ...");
-			//parseAllFiles(lists,"D:\\");
+			parseAllFiles(lists,"D:\\");
 			
 			System.out.println("E started ...");
-			//parseAllFiles(lists,"E:\\");
+			parseAllFiles(lists,"E:\\");
 
 			
-			for (String name: finalMap.keySet()) {
+			for (String name: finalMap.keySet())
+			{
 			    String value = finalMap.get(name).toString();
-			    System.out.println(name + " " + value);
+			    System.out.println(value);
 			}
+			
+			
 			System.out.println("Executed Successfully..");
+			System.out.println();
+			
+			if(!exceptns.isEmpty())
+			{
 		      System.out.println("These files are used by others ..");
 		       for (String value : exceptns)
 		            System.out.println(value + ", ");
+		   }
 		       
-		       System.out.println("Empty Files: ");
+		   if(!emptyFiles.isEmpty()) {    
+		   System.out.println("Empty Files are: ");
 		       for (String value : emptyFiles)
 		            System.out.println(value + ", ");
+		   }
 	   }
 
 
@@ -134,27 +150,46 @@ public class FindDupFiles
 	        				        }
 	        				        else
 	        				        {
-	        				        	String uniqueFile1 = makeHashQuick(locationFile);
-	        				        	String uniqueFile2 = makeHashQuick(dirChild);
-	        				        	if(uniqueFile1.equals(uniqueFile2))
+	        				        	String uniqueFile2;
+	        				        	if(Partsize<size)
 	        				        	{
-	        				        		Set<String> dup = finalMap.get(uniqueFile1);
-	        				        		if(dup == null)
-	        				        		{
-	        				        			dup = new HashSet<String>();
-	        				        		}
-	        				        		if(pathsize>1)
-	        				        		{
-	        				        			dup.add(dirChild.getAbsolutePath());
-	        				        		}
-	        				        		else
-	        				        		{
+	        				        	uniqueFile2 = makeHashLean(dirChild);
+	        				        	}
+	        				        	else
+	        				        	{
+	        				        	uniqueFile2 = makeHashQuick(dirChild);
+	        				        	}
+	        				        	if(finalMap.get(uniqueFile2) != null)
+	        				        	{
+	        				        		Set<String> dup = finalMap.get(uniqueFile2);
+	        				        	    dup.add(dirChild.getAbsolutePath());	        				        		
+	        				        		finalMap.put(uniqueFile2, dup);
+	        				        		DupSts = false;
+	        				        	}
+	        				        	else 
+	        				        	{
+	        				        		String uniqueFile1;
+		        				        	if(Partsize<size)
+		        				        	{
+		        				        	uniqueFile1 = makeHashLean(locationFile);
+		        				        	}
+		        				        	else
+		        				        	{
+		        				        	uniqueFile1 = makeHashQuick(locationFile);
+		        				        	}
+		        				        	if(uniqueFile1.equals(uniqueFile2))
+		        				        	{
+		        				        		Set<String> dup = finalMap.get(uniqueFile1);
+		        				        		if(dup == null)
+		        				        		{
+		        				        			dup = new HashSet<String>();
+		        				        		}
 	        				        			dup.add(locations);
 		        				        		dup.add(dirChild.getAbsolutePath());
-	        				        		}
-	        				        		
-	        				        		finalMap.put(uniqueFile1, dup);
-	        				        		DupSts = false;
+		        				        			        				        		
+		        				        		finalMap.put(uniqueFile1, dup);
+		        				        		DupSts = false;
+		        				        	}
 	        				        	}
 	        				        }
 	        				       
@@ -197,5 +232,28 @@ public class FindDupFiles
 	        return hash;
 	
 	}
+	public static String makeHashLean(File infile) throws Exception
+    {
+        RandomAccessFile file = new RandomAccessFile(infile, "r");
+
+        int buffSize = 104857600 ;
+        byte[] buffer = new byte[buffSize];
+        long read = 0;
+        long offset = file.length();
+        int unitsize;
+        while (read < offset)
+        {
+            unitsize = (int) (((offset - read) >= buffSize) ? buffSize: (offset - read));            
+            file.read(buffer, 0, unitsize);      
+            messageDigest.update(buffer, 0, unitsize);
+ 
+            read += unitsize;
+        }
+
+        file.close();
+        String hash = new BigInteger(1, messageDigest.digest()).toString(16);
+        return hash;
+    }
+
 
 }
