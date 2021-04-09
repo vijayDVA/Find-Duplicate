@@ -23,10 +23,10 @@ public class FindDupFiles
 	public static Set<String> exceptns = new HashSet<String>();
 	public static Map<String,Set<String>> finalMap = new HashMap<String,Set<String>>();
 	
-	static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+	/*static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 	static long RamSize= Math.round((double)(((mxbean.getTotalPhysicalMemorySize())/1024)/1024)/1024);
 	static double Part= RamSize/4.5;
-	static long Partsize= (long) (Part*1024*1024*1024);
+	static long Partsize= (long) (Part*1024*1024*1024);*/
 	
 	private static MessageDigest messageDigest;
     static {
@@ -59,6 +59,7 @@ public class FindDupFiles
 			    String value = finalMap.get(name).toString();
 			    System.out.println(value);
 			}
+			
 			 System.out.println("SQL Started ..");
 		      try {
 					Dao.insert(finalMap);
@@ -74,7 +75,7 @@ public class FindDupFiles
 		      System.out.println("These files are used by others ..");
 		       for (String value : exceptns)
 		            System.out.println(value + ", ");
-		   }
+		    }
 		       
 		   if(!emptyFiles.isEmpty()) {    
 		   System.out.println("Empty Files are: ");
@@ -162,7 +163,7 @@ public class FindDupFiles
 	        				        else
 	        				        {
 	        				        	String uniqueFile2;
-	        				        	if(Partsize<size)
+	        				        	if(314572800<size)
 	        				        	{
 	        				        	uniqueFile2 = makeHashLean(dirChild);
 	        				        	}
@@ -180,7 +181,7 @@ public class FindDupFiles
 	        				        	else 
 	        				        	{
 	        				        		String uniqueFile1;
-		        				        	if(Partsize<size)
+		        				        	if(314572800<size)
 		        				        	{
 		        				        	uniqueFile1 = makeHashLean(locationFile);
 		        				        	}
@@ -243,7 +244,6 @@ public class FindDupFiles
 	        fin.close();
 	        String hash = new BigInteger(1, messageDigest.digest(data)).toString(16);
 	        return hash;
-	
 	}
 	public static String makeHashLean(File infile) throws Exception
     {
