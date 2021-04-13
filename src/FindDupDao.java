@@ -69,6 +69,11 @@ public class FindDupDao  {
 		
 	}
 
+	public void close() throws SQLException {
+		con.close();
+		
+	}
+
 	
 	
 }

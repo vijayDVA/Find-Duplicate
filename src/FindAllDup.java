@@ -53,6 +53,7 @@ public class FindAllDup
 			System.out.println("Executed Successfully..");
 			System.out.println();
 			
+			Dao.close();
 			if(!exceptns.isEmpty())
 			{
 		      System.out.println("These files are used by others ..");
