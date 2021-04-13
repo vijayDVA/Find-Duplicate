@@ -2,26 +2,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import org.apache.commons.io.FilenameUtils;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
-public class FindDupFiles 
+public class FindAllDup 
 {
-	public static Set<String> emptyFiles = new HashSet<String>();
-	public static Set<String> exceptns = new HashSet<String>();
-	public static Map<String,Set<String>> finalMap = new HashMap<String,Set<String>>();
+	public static List<String> emptyFiles = new ArrayList<String>();
+	public static List<String> exceptns = new ArrayList<String>();
+	public static FindDupDao Dao = new FindDupDao();
 	
 	/*static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 	static long RamSize= Math.round((double)(((mxbean.getTotalPhysicalMemorySize())/1024)/1024)/1024);
@@ -40,32 +36,19 @@ public class FindDupFiles
 
 	public static void main(String[] args) throws Exception 
 	{
-		FindDupDao Dao = new FindDupDao();
-		Map<Long, HashMap<String,List<String>>> lists = new HashMap<Long, HashMap<String,List<String>>>();
+		
+		Map<Long, Map<String,List<String>>> lists = new HashMap<Long, Map<String,List<String>>>();
 	        
-
+	
 			System.out.println("C started ...");
-			parseAllFiles(lists,"C:\\");
+			//parseAllFiles(lists,"D:\\freshworks");
 	
 			System.out.println("D started ...");
 			parseAllFiles(lists,"D:\\");
 			
 			System.out.println("E started ...");
 			parseAllFiles(lists,"E:\\");
-
-			
-			for (String name: finalMap.keySet())
-			{
-			    String value = finalMap.get(name).toString();
-			    System.out.println(value);
-			}
-			
-			 System.out.println("SQL Started ..");
-		      try {
-					Dao.insert(finalMap);
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
+			 
 			
 			System.out.println("Executed Successfully..");
 			System.out.println();
@@ -77,16 +60,17 @@ public class FindDupFiles
 		            System.out.println(value + ", ");
 		    }
 		       
-		   if(!emptyFiles.isEmpty()) {    
+		   if(!emptyFiles.isEmpty())
+		   {    
 		   System.out.println("Empty Files are: ");
-		       for (String value : emptyFiles)
+		   		for (String value : emptyFiles)
 		            System.out.println(value + ", ");
 		   }
-		   System.out.println(finalMap.size() + ", ");
+		  
 	   }
 
 
-	private static void parseAllFiles(Map<Long, HashMap<String, List<String>>> lists, String parentDirectory) throws Exception 
+	private static void parseAllFiles(Map<Long, Map<String, List<String>>> lists, String parentDirectory) throws Exception 
 	{
 		File[] filesInDirectory = new File(parentDirectory).listFiles();
         if(filesInDirectory != null) 
@@ -108,7 +92,7 @@ public class FindDupFiles
 	        				String ext = FilenameUtils.getExtension(dirChild.getAbsolutePath());
 	        				if(ext=="")
 	        					ext="txxt";
-	        				HashMap<String,List<String>> extMap = lists.get(size);
+	        				Map<String,List<String>> extMap = lists.get(size);
 	        				List<String> paths;
 	        				Boolean sts = true;
 	        				Boolean DupSts = true;
@@ -138,24 +122,37 @@ public class FindDupFiles
         						RandomAccessFile raf2 = new RandomAccessFile(dirChild.getAbsoluteFile(), "r");
         						byte[] buffer2 = new byte[100];
         						byte[] buffer1 = new byte[100];
-        						raf2.read(buffer2,0,100);
+        						
 	        					for(String locations :paths)
 	        					{ 
 	        						RandomAccessFile raf1 = new RandomAccessFile(locations, "r");
 	        						File locationFile = new File(locations);
-	        						
+	        				        
+	        				        raf1.seek(0);
+	        				        raf2.seek(0);
 	        				        
 	        				        
-	        				        raf1.read(buffer1,0,100);
-	        				        if(!Arrays.equals(buffer1,buffer2))
-	        				        	continue;
 	        				        raf1.read(buffer1,0,100);
 	        				        raf2.read(buffer2,0,100);
 	        				        if(!Arrays.equals(buffer1,buffer2))
 	        				        	continue;
 	        				        
+	        				        raf1.seek(size/2);
+	        				        raf2.seek(size/2);
+	        				        
 	        				        raf1.read(buffer1,0,100);
 	        				        raf2.read(buffer2,0,100);
+	        				        if(!Arrays.equals(buffer1,buffer2))
+	        				        	continue;
+	        				        
+	        				        if(size>100)
+	        				        {
+	        				        raf1.seek(size-100);
+	        				        raf2.seek(size-100);
+	        				        
+	        				        raf1.read(buffer1,0,100);
+	        				        raf2.read(buffer2,0,100);
+	        				        }
 	        				        if(!Arrays.equals(buffer1,buffer2))
 	        				        {
 	        				        	continue;
@@ -171,11 +168,9 @@ public class FindDupFiles
 	        				        	{
 	        				        	uniqueFile2 = makeHashQuick(dirChild);
 	        				        	}
-	        				        	if(finalMap.get(uniqueFile2) != null)
+	        				        	if(Dao.check(uniqueFile2) ==true)
 	        				        	{
-	        				        		Set<String> dup = finalMap.get(uniqueFile2);
-	        				        	    dup.add(dirChild.getAbsolutePath());	        				        		
-	        				        		finalMap.put(uniqueFile2, dup);
+	        				        		Dao.update(uniqueFile2,dirChild.getAbsoluteFile());
 	        				        		DupSts = false;
 	        				        	}
 	        				        	else 
@@ -191,15 +186,8 @@ public class FindDupFiles
 		        				        	}
 		        				        	if(uniqueFile1.equals(uniqueFile2))
 		        				        	{
-		        				        		Set<String> dup = finalMap.get(uniqueFile1);
-		        				        		if(dup == null)
-		        				        		{
-		        				        			dup = new HashSet<String>();
-		        				        		}
-	        				        			dup.add(locations);
-		        				        		dup.add(dirChild.getAbsolutePath());
-		        				        			        				        		
-		        				        		finalMap.put(uniqueFile1, dup);
+		        				        		        				        		
+	        				        			Dao.add(locations,dirChild.getAbsolutePath(),uniqueFile1);
 		        				        		DupSts = false;
 		        				        	}
 	        				        	}
@@ -238,8 +226,8 @@ public class FindDupFiles
 
 	private static String makeHashQuick(File infile) throws IOException 
 	{
-		  FileInputStream fin = new FileInputStream(infile);
-	        byte data[] = new byte[(int) infile.length()];
+		    FileInputStream fin = new FileInputStream(infile);
+	        byte data[] = new byte[ (int) infile.length()];
 	        fin.read(data);
 	        fin.close();
 	        String hash = new BigInteger(1, messageDigest.digest(data)).toString(16);
@@ -248,12 +236,12 @@ public class FindDupFiles
 	public static String makeHashLean(File infile) throws Exception
     {
         RandomAccessFile file = new RandomAccessFile(infile, "r");
-
         int buffSize = 52428800 ;
         byte[] buffer = new byte[buffSize];
         long read = 0;
         long offset = file.length();
         int unitsize;
+        
         while (read < offset)
         {
             unitsize = (int) (((offset - read) >= buffSize) ? buffSize: (offset - read));            
