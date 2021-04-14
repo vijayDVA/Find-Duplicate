@@ -12,11 +12,20 @@ public class FindDupDao  {
 	private static String dbPassword = "1234";
 	private static String dbDriver = "com.mysql.cj.jdbc.Driver";
 	public static Connection con = null;
-	public static PreparedStatement ps;
 	
-    static{ try {
+	public static String sql1 = "UPDATE duplists.dupdb dl SET dl.File_locations = concat(dl.File_locations,?) where dl.id=?";
+	public static String sql2 = "INSERT INTO duplists.dupdb (id,File_locations) VALUES(?,?)";
+	
+	public static PreparedStatement ps1;
+	public static PreparedStatement ps2;
+	
+    static{ 
+    	try {
 		Class.forName(dbDriver);
 		con = DriverManager.getConnection(dbUrl, dbUname, dbPassword);
+		System.out.println("Connected");
+		ps1 = con.prepareStatement(sql1);
+		ps2 = con.prepareStatement(sql2);
 	} catch (ClassNotFoundException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -27,14 +36,22 @@ public class FindDupDao  {
 	
 
 	public void add(String locations, String absolutePath, String uniqueFile1) throws SQLException
-	{
+	{	
+		ps2.setString(1,uniqueFile1);
+		ps2.setString(2, locations+','+absolutePath);
+		ps2.executeUpdate();		
+	}
+
+	public void update(String uniqueFile2, File absoluteFile) throws SQLException
+	{	
+		ps1.setString(1,","+absoluteFile);
+		ps1.setString(2, uniqueFile2);	
+		ps1.executeUpdate();		
+	}
+
+	public void close() throws SQLException {
+		con.close();
 		
-		
-		String sql2 = "INSERT INTO duplists.dupdb (id,File_locations) VALUES(?,?)";
-		ps = con.prepareStatement(sql2);
-		ps.setString(1,uniqueFile1);
-		ps.setString(2, locations+','+absolutePath);
-		ps.executeUpdate();		
 	}
 
 	/*public Boolean check(String uniqueFile1) throws SQLException
@@ -55,25 +72,5 @@ public class FindDupDao  {
 		}
 		return sts;
 	}*/
-
-
-	public void update(String uniqueFile2, File absoluteFile) throws SQLException
-	{
-	
-		String sql1 = "UPDATE duplists.dupdb dl SET dl.File_locations = concat(dl.File_locations,?) where dl.id=?";
-		
-		ps = con.prepareStatement(sql1);
-		ps.setString(1,","+absoluteFile);
-		ps.setString(2, uniqueFile2);	
-		ps.executeUpdate();
-		
-	}
-
-	public void close() throws SQLException {
-		con.close();
-		
-	}
-
-	
 	
 }

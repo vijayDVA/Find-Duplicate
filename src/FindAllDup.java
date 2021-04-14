@@ -66,7 +66,7 @@ public class FindAllDup
 		            System.out.println(value + ", ");
 		    }
 		       
-		   if(!emptyFiles.isEmpty() || false)
+		   if(!emptyFiles.isEmpty())
 		   {    
 		   System.out.println("Empty Files are: ");
 		   		for (String value : emptyFiles)
@@ -166,7 +166,7 @@ public class FindAllDup
 	        				        else
 	        				        {
 	        				        	String uniqueFile2;
-	        				        	if(314572800<size)
+	        				        	if(419430400<size)//400MB
 	        				        	{
 	        				        	uniqueFile2 = makeHashLean(dirChild);
 	        				        	}
@@ -182,7 +182,7 @@ public class FindAllDup
 	        				        	else 
 	        				        	{
 	        				        		String uniqueFile1;
-		        				        	if(314572800<size)
+		        				        	if(419430400<size)
 		        				        	{
 		        				        	uniqueFile1 = makeHashLean(locationFile);
 		        				        	}
