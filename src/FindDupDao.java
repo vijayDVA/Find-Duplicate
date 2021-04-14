@@ -37,7 +37,7 @@ public class FindDupDao  {
 		ps.executeUpdate();		
 	}
 
-	public Boolean check(String uniqueFile1) throws SQLException
+	/*public Boolean check(String uniqueFile1) throws SQLException
 	{
 		Boolean sts = null;
 		String sql = "SELECT * FROM duplists.dupdb WHERE id=?";
@@ -54,7 +54,7 @@ public class FindDupDao  {
 			sts = false;
 		}
 		return sts;
-	}
+	}*/
 
 
 	public void update(String uniqueFile2, File absoluteFile) throws SQLException

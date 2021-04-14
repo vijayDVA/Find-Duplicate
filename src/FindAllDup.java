@@ -8,15 +8,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+
 import org.apache.commons.io.FilenameUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class FindAllDup 
 {
 	public static List<String> emptyFiles = new ArrayList<String>();
 	public static List<String> exceptns = new ArrayList<String>();
+	public static Set<String> dup = new HashSet<String>();
+	
 	public static FindDupDao Dao = new FindDupDao();
 	
 	/*static com.sun.management.OperatingSystemMXBean mxbean  =  (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -61,7 +66,7 @@ public class FindAllDup
 		            System.out.println(value + ", ");
 		    }
 		       
-		   if(!emptyFiles.isEmpty())
+		   if(!emptyFiles.isEmpty() || false)
 		   {    
 		   System.out.println("Empty Files are: ");
 		   		for (String value : emptyFiles)
@@ -138,13 +143,13 @@ public class FindAllDup
 	        				        if(!Arrays.equals(buffer1,buffer2))
 	        				        	continue;
 	        				        
-	        				        raf1.seek(size/2);
+	        				        /*raf1.seek(size/2);
 	        				        raf2.seek(size/2);
 	        				        
 	        				        raf1.read(buffer1,0,100);
 	        				        raf2.read(buffer2,0,100);
 	        				        if(!Arrays.equals(buffer1,buffer2))
-	        				        	continue;
+	        				        	continue;*/
 	        				        
 	        				        if(size>100)
 	        				        {
@@ -169,7 +174,7 @@ public class FindAllDup
 	        				        	{
 	        				        	uniqueFile2 = makeHashQuick(dirChild);
 	        				        	}
-	        				        	if(Dao.check(uniqueFile2) ==true)
+	        				        	if(dup.contains(uniqueFile2) == true)
 	        				        	{
 	        				        		Dao.update(uniqueFile2,dirChild.getAbsoluteFile());
 	        				        		DupSts = false;
@@ -189,6 +194,7 @@ public class FindAllDup
 		        				        	{
 		        				        		        				        		
 	        				        			Dao.add(locations,dirChild.getAbsolutePath(),uniqueFile1);
+	        				        			dup.add(uniqueFile1);
 		        				        		DupSts = false;
 		        				        	}
 	        				        	}
