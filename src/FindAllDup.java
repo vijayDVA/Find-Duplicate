@@ -46,7 +46,7 @@ public class FindAllDup
 	        
 	
 			System.out.println("C started ...");
-			//parseAllFiles(lists,"D:\\freshworks");
+			//parseAllFiles(lists,"C:\\");
 	
 			System.out.println("D started ...");
 			parseAllFiles(lists,"D:\\");
