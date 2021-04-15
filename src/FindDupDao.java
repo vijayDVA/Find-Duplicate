@@ -13,7 +13,7 @@ public class FindDupDao  {
 	private static String dbDriver = "com.mysql.cj.jdbc.Driver";
 	public static Connection con = null;
 	
-	public static String sql1 = "UPDATE duplists.dupdb dl SET dl.File_locations = concat(dl.File_locations,?) where dl.id=?";
+	public static String sql1 = "UPDATE duplists.dupdb SET File_locations = concat(File_locations,?) where id=?";
 	public static String sql2 = "INSERT INTO duplists.dupdb (id,File_locations) VALUES(?,?)";
 	
 	public static PreparedStatement ps1;
